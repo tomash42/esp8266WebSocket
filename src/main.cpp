@@ -7,15 +7,22 @@ const char* ssid = "UPC1064739";
 const char* password = "FDVECCFJ";
 
 //WIFI softAP
-const char* ssid2 = "test";
+IPAddress local_IP(192,168,10,10);
+IPAddress gateway(192,168,10,1);
+IPAddress subnet(255,255,255,0);
+
+const char* ssid2 = "haslo od 1 do 8";
 const char* password2 = "12345678";
+
+
+
 
 int webSockMillis = 200;
 
 ESP8266WebServer server(80);
 
 WebSocketsServer webSocket = WebSocketsServer(81);
-WebSocketsServer webSocket2 = WebSocketsServer(82);
+WebSocketsServer webSocket2 = WebSocketsServer(82);//nie skonfigurowany
 
 
 
@@ -140,30 +147,32 @@ const unsigned long period = 100;
 
 
 
-
 void setup() {
   Serial.begin(9600);
 
   // Begin Access Point
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(ssid2 ,password2);
 
-
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
+//sAP
+Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
+Serial.print("Setting soft-AP ... ");
+Serial.println(WiFi.softAP(ssid2,password2) ? "Ready" : "Failed!");
+Serial.print("Soft-AP IP address = ");
+Serial.println(WiFi.softAPIP());
+// end sAP
+//STA
+Serial.println(ssid);
+WiFi.begin(ssid, password);
+while (WiFi.status() != WL_CONNECTED) 
+{
     delay(500);
     Serial.print(".");
-  }
+}
 
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address is : ");
   Serial.println(WiFi.localIP());
-  Serial.println("IP soft AP  is:  ");
-  Serial.print(WiFi.softAPIP());
+
 
 
   //funkcja z www
