@@ -2,28 +2,32 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
-//wifi ACCESS POINT 
+//wifi ACCESS POINT - konfiguracja dostepu do okreslonej sieci  
 const char* ssid = "UPC1064739";
 const char* password = "FDVECCFJ";
+//end AP
 
-//WIFI softAP
+//WIFI softAP -  konfiguracja mozna dowolnie zmienic. 
 IPAddress local_IP(192,168,10,10);
 IPAddress gateway(192,168,10,1);
 IPAddress subnet(255,255,255,0);
 
 const char* ssid2 = "haslo od 1 do 8";
 const char* password2 = "12345678";
-
-
+//end WiFi soft AP
+ 
 
 
 int webSockMillis = 200;
 
+//serwer www
 ESP8266WebServer server(80);
+//end server
 
+//serwer websocket
 WebSocketsServer webSocket = WebSocketsServer(81);
 WebSocketsServer webSocket2 = WebSocketsServer(82);//nie skonfigurowany
-
+//end serwer wb
 
 
 String webSite, JSONtxt;
@@ -129,17 +133,19 @@ label{
 </html>
 
 )====";
-
+//funkcja wyswietlajaca strone www.
 void WebSite(){
   server.send(webSockMillis, "text/html", webPage);
 }
 
 int dist = 0 ;
+//przypisanie pinow czujnika d6=12 d5=14
+const int trigP = 12;
+const int echoP = 14;
 
-const int trigP = 12;//d6 pin na hs
-const int echoP = 14;//pin
-
+//czas trwania pomiaru
 long duration;
+//zmierzona odleglosc od obiektu
 int distance;
 unsigned long startMillis;
 unsigned long currentMillis;
@@ -148,18 +154,19 @@ const unsigned long period = 100;
 
 
 void setup() {
+  //predkosc transmisji 9600
   Serial.begin(9600);
 
   // Begin Access Point
 
-//sAP
+//sAP uruchomienie wifi
 Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
 Serial.print("Setting soft-AP ... ");
 Serial.println(WiFi.softAP(ssid2,password2) ? "Ready" : "Failed!");
 Serial.print("Soft-AP IP address = ");
 Serial.println(WiFi.softAPIP());
 // end sAP
-//STA
+//STA polaczenie do okreslonej sieci 
 Serial.println(ssid);
 WiFi.begin(ssid, password);
 while (WiFi.status() != WL_CONNECTED) 
@@ -175,17 +182,20 @@ while (WiFi.status() != WL_CONNECTED)
 
 
 
-  //funkcja z www
+  //funkcja z www. Uruchomienie serwerow. 
   server.on("/",WebSite);
   server.begin();
   webSocket.begin();
   webSocket2.begin();
 
-
+// wejście wyjscie sygnału wyzwalającego cykl pomiarowy trig i echo
+//Ustawienie pinu trigP jako wyjście
+//Ustawienie pinu echoP jako wejscie
   pinMode(trigP, OUTPUT);
   pinMode(echoP, INPUT);
-startMillis = millis();//initial start time
 
+//początkowy czas rozpoczęcia
+startMillis = millis();
 }
 
 void loop() {
@@ -196,9 +206,11 @@ void loop() {
 currentMillis = millis();
 if (currentMillis - startMillis >= period)
 {
+  //Wyzerowanie sygnalu trig
   digitalWrite(trigP,LOW);
+  //odczekanie 2 mikrosekundy
   delayMicroseconds(2);
-
+//start pomiaru - stan wysoki
   digitalWrite(trigP,HIGH);
   delayMicroseconds(10);
   digitalWrite(trigP,LOW);
